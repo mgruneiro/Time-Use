@@ -1,0 +1,22 @@
+---
+title: "sds390 Final Project"
+author: "Madison Gruneiro"
+date: "12/3/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ipumsr)
+library(tidyverse)
+library(bayesrules)
+library(bayesplot)
+```
+
+## Loading in Ipums data
+
+```{r}
+ddi <- read_ipums_ddi("atus_00001.xml")
+data <- read_ipums_micro(ddi)
+```
+
