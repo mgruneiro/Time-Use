@@ -16,6 +16,16 @@ library(rstanarm)
 library(naniar)
 ```
 
+## Introduction
+
+We want to predict how much time an individual spends socializing/relaxing and exercising based on   
+- Number of children  
+- Hours worked per week (independent & spouse/partner)   
+- Weekly earnings (independent & spouse/partner)  
+- Age  
+- Sex  
+- Race 
+
 ## Loading in Ipums data
 
 ```{r, results='hide'}
@@ -35,16 +45,6 @@ data_2019 <- data %>%
 ## About the data
 
 The data we are using is from Ipums Time Use data. We selected data collected from surveys conducted on Americans from years 2015 to 2019. The Bureau of Labor Statistics compiled the questionnaire with the goal of measuring how people spend time on different life activities. The data collection started in 2003 with some years having special modules, such as the eating and health module from 2006 to 2008 and from 2014 to 2016. The survey respondents provide information about how they spend their time in a 24-hour period. Survey respondents are randomly selected from the participants in the Current Population Survey (CPS). Respondents over the age of 15 completed a one-day time diary. The days of the distribution of the time diary are: 10% allocation to each day of the week (Monday through Friday), 25% to Saturday, and 25% to Sunday. Each respondent were offered an incentive of $40 for participation.
-
-## Purpose
-
-We want to predict how much time an individual spends socializing/relaxing and exercising based on   
-- Number of children  
-- Hours worked per week (independent & spouse/partner)   
-- Weekly earnings (independent & spouse/partner)  
-- Age  
-- Sex  
-- Race  
 
 ## Method
 
