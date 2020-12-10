@@ -13,6 +13,7 @@ library(tidyverse)
 library(bayesrules)
 library(bayesplot)
 library(rstanarm)
+library(naniar)
 ```
 
 ## Loading in Ipums data
@@ -25,7 +26,9 @@ data <- read_ipums_micro(ddi)
 
 ```{r}
 data_2019 <- data %>%
-  filter(YEAR == "2019") 
+  filter(YEAR == "2019")%>%
+  replace_with_na(replace = list(UHRSWORKT=c(9999, 9995)))%>%
+  na.omit()
 ```
 
 
@@ -80,7 +83,7 @@ Does NOT look good lol!!
 
 ```{r, results="hide"}
 set.seed(84735)
-sports_model1 <- stan_glm(ACT_SPORTS ~ UHRSWORKT + HH_NUMOWNKIDS, 
+age_model1 <- stan_glm(AGE ~ ACT_TRAVEL + HH_NUMOWNKIDS +EDUC, 
                              data = data_2019,
                              family = gaussian,
                              chains = 4,
@@ -90,15 +93,15 @@ sports_model1 <- stan_glm(ACT_SPORTS ~ UHRSWORKT + HH_NUMOWNKIDS,
 ### Diagnostics
 
 ```{r}
-mcmc_trace(sports_model1)
-mcmc_dens_overlay(sports_model1)
+mcmc_trace(age_model1)
+mcmc_dens_overlay(age_model1)
 ```
 
 ### Posterior Predictive Check
 
 ```{r}
 set.seed(84735)
-pp_check(sports_model1, nreps = 50)
+pp_check(age_model1, nreps = 50)
 ```
 
 This is probably not a good response variable, a lot of 0s in the data.
