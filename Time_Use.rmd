@@ -12,6 +12,7 @@ library(ipumsr)
 library(tidyverse)
 library(bayesrules)
 library(bayesplot)
+library(rstanarm)
 ```
 
 ## Loading in Ipums data
@@ -20,6 +21,13 @@ library(bayesplot)
 ddi <- read_ipums_ddi("atus_00001.xml")
 data <- read_ipums_micro(ddi)
 ```
+### Sorting data by year
+
+```{r}
+data_2019 <- data %>%
+  filter(YEAR == "2019") 
+```
+
 
 ## About the data
 
@@ -36,6 +44,37 @@ We want to predict how much time an individual spends socializing/relaxing and e
 - Race  
 
 ## Method
+
+### Variables
+
+## Building the model
+
+```{r, results='hide'}
+set.seed(84735)
+social_model1 <- stan_glm(ACT_SOCIAL ~ UHRSWORKT + HH_NUMOWNKIDS, 
+                             data = data_2019,
+                             family = gaussian,
+                             chains = 4,
+                             iter = 1000*2)
+```
+Can add more to this model.
+
+### Diagnostics
+
+```{r}
+mcmc_trace(social_model1)
+mcmc_dens_overlay(social_model1)
+```
+The chains could be closer together?
+
+### Posterior Predictive Check
+
+```{r}
+set.seed(84735)
+pp_check(social_model1, nreps = 50)
+```
+
+Does NOT look good lol!!
 
 ## References
 
