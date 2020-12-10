@@ -47,11 +47,11 @@ We want to predict how much time an individual spends socializing/relaxing and e
 
 ### Variables
 
-## Building the model
+## Building the model for socializing/relaxing
 
 ```{r, results='hide'}
 set.seed(84735)
-social_model1 <- stan_glm(ACT_SOCIAL ~ UHRSWORKT + HH_NUMOWNKIDS, 
+social_model1 <- stan_glm(ACT_SOCIAL ~ UHRSWORKT + HH_NUMOWNKIDS + EDUC, 
                              data = data_2019,
                              family = gaussian,
                              chains = 4,
@@ -75,6 +75,33 @@ pp_check(social_model1, nreps = 50)
 ```
 
 Does NOT look good lol!!
+
+## Building model for exercising
+
+```{r, results="hide"}
+set.seed(84735)
+sports_model1 <- stan_glm(ACT_SPORTS ~ UHRSWORKT + HH_NUMOWNKIDS, 
+                             data = data_2019,
+                             family = gaussian,
+                             chains = 4,
+                             iter = 1000*2)
+```
+
+### Diagnostics
+
+```{r}
+mcmc_trace(sports_model1)
+mcmc_dens_overlay(sports_model1)
+```
+
+### Posterior Predictive Check
+
+```{r}
+set.seed(84735)
+pp_check(sports_model1, nreps = 50)
+```
+
+This is probably not a good response variable, a lot of 0s in the data.
 
 ## References
 
