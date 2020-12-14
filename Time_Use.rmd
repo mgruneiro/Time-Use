@@ -32,25 +32,27 @@ We want to predict how much time an individual spends socializing/relaxing and e
 ddi <- read_ipums_ddi("atus_00001.xml")
 data <- read_ipums_micro(ddi)
 ```
-### Sorting data by year
+### Sorting data
 
 ```{r}
 data_2019 <- data %>%
   filter(YEAR == "2019")%>%
   replace_with_na(replace = list(UHRSWORKT=c(9999, 9995)))%>%
+  replace_with_na(replace = list(EARNWEEK = 99999.99)) %>%
   na.omit()
 ```
 
+This returns a data frame with 4,847 observations to work with.
 
 ## About the data
 
-The data we are using is from Ipums Time Use data. We selected data collected from surveys conducted on Americans from years 2015 to 2019. The Bureau of Labor Statistics compiled the questionnaire with the goal of measuring how people spend time on different life activities. The data collection started in 2003 with some years having special modules, such as the eating and health module from 2006 to 2008 and from 2014 to 2016. The survey respondents provide information about how they spend their time in a 24-hour period. Survey respondents are randomly selected from the participants in the Current Population Survey (CPS). Respondents over the age of 15 completed a one-day time diary. The days of the distribution of the time diary are: 10% allocation to each day of the week (Monday through Friday), 25% to Saturday, and 25% to Sunday. Each respondent were offered an incentive of $40 for participation.
+The data we are using is from Ipums Time Use data. We selected data collected from surveys conducted on Americans from years 2015 to 2019. For our model, we used data from only 2019. The Bureau of Labor Statistics compiled a questionnaire with the goal of measuring how people spend time on different life activities. The data collection started in 2003 with some years having special modules, such as the eating and health module from 2006 to 2008 and from 2014 to 2016. The survey respondents provide information about how they spend their time in a 24-hour period. Survey respondents are randomly selected from the participants in the Current Population Survey (CPS). Respondents over the age of 15 completed a one-day time diary. The days of the distribution of the time diary are: 10% allocation to each day of the week (Monday through Friday), 25% to Saturday, and 25% to Sunday. Each respondent were offered an incentive of $40 for participation.
 
 ## Method
 
 ### Variables
 
-## Building the model for socializing/relaxing
+## Building model for socializing/relaxing
 
 ```{r, results='hide'}
 set.seed(84735)
@@ -77,13 +79,13 @@ set.seed(84735)
 pp_check(social_model1, nreps = 50)
 ```
 
-Does NOT look good lol!!
+### Analysis
 
-## Building model for exercising
+## Building model for traveling
 
 ```{r, results="hide"}
 set.seed(84735)
-age_model1 <- stan_glm(AGE ~ ACT_TRAVEL + HH_NUMOWNKIDS +EDUC, 
+travel_model1 <- stan_glm(ACT_TRAVEL ~ AGE + HH_NUMOWNKIDS +UHRSWORKT + EARNWEEK, 
                              data = data_2019,
                              family = gaussian,
                              chains = 4,
@@ -93,18 +95,42 @@ age_model1 <- stan_glm(AGE ~ ACT_TRAVEL + HH_NUMOWNKIDS +EDUC,
 ### Diagnostics
 
 ```{r}
-mcmc_trace(age_model1)
-mcmc_dens_overlay(age_model1)
+mcmc_trace(travel_model1)
+mcmc_dens_overlay(travel_model1)
 ```
 
 ### Posterior Predictive Check
 
 ```{r}
 set.seed(84735)
-pp_check(age_model1, nreps = 50)
+pp_check(travel_model1, nreps = 50)
 ```
 
-This is probably not a good response variable, a lot of 0s in the data.
+## Model for personal care
+
+```{r, results="hide"}
+set.seed(84735)
+care_model1 <- stan_glm(ACT_PCARE ~ AGE + HH_NUMOWNKIDS +UHRSWORKT + EARNWEEK, 
+                             data = data_2019,
+                             family = gaussian,
+                             chains = 4,
+                             iter = 1000*2)
+```
+
+### Diagnostics
+
+```{r}
+mcmc_trace(care_model1)
+mcmc_dens_overlay(care_model1)
+```
+
+### Posterior Predictive Check
+
+```{r}
+set.seed(84735)
+pp_check(care_model1, nreps = 50)
+```
+
 
 ## References
 
