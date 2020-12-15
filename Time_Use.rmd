@@ -18,13 +18,12 @@ library(naniar)
 
 ## Introduction
 
-We want to predict how much time an individual spends socializing/relaxing and exercising based on   
+We want to predict how much time an individual spends socializing/relaxing and for personal care based on   
 - Number of children  
-- Hours worked per week (independent & spouse/partner)   
-- Weekly earnings (independent & spouse/partner)  
+- Hours worked per week    
+- Weekly earnings   
 - Age  
-- Sex  
-- Race 
+- Sex 
 
 ## Loading in Ipums data
 
@@ -50,13 +49,23 @@ The data we are using is from Ipums Time Use data. We selected data collected fr
 
 ## Method
 
-### Variables
+## Variables
+
+### ACT_SOCIAL: Minutes spent socializing/relaxing per week
+
+Summary Stats
+
+```{r}
+summary(data_2019$ACT_SOCIAL)
+hist(data_2019$ACT_SOCIAL)
+```
+
 
 ## Building model for socializing/relaxing
 
 ```{r, results='hide'}
 set.seed(84735)
-social_model1 <- stan_glm(ACT_SOCIAL ~ UHRSWORKT + HH_NUMOWNKIDS + EDUC, 
+social_model1 <- stan_glm(ACT_SOCIAL ~ UHRSWORKT + HH_NUMOWNKIDS + EARNWEEK, 
                              data = data_2019,
                              family = gaussian,
                              chains = 4,
@@ -70,7 +79,8 @@ Can add more to this model.
 mcmc_trace(social_model1)
 mcmc_dens_overlay(social_model1)
 ```
-The chains could be closer together?
+
+The trace plots appear stable and the densities of the chains are similar so the approximations of the posterior should also be stable. There is a discrepancy in the number of children under 18 variable. Two chains are not peaking as high as the other chains but they follow the general shape of the other distributions so we accept this as sufficient. This provides evidence that our simulation is stable and our chains are sufficiently long. 
 
 ### Posterior Predictive Check
 
@@ -79,32 +89,20 @@ set.seed(84735)
 pp_check(social_model1, nreps = 50)
 ```
 
+The model captures somewhat of observed values for time spent socializing/relaxing but it doesn't pick up the average values in the data.   
+
+### Looking at predictions
+
+```{r}
+set.seed(84735)
+predictions <- posterior_predict(social_model1, newdata = data_2019)
+
+prediction_summary(y = data_2019$ACT_SOCIAL, yrep = predictions)
+```
+
+
+
 ### Analysis
-
-## Building model for traveling
-
-```{r, results="hide"}
-set.seed(84735)
-travel_model1 <- stan_glm(ACT_TRAVEL ~ AGE + HH_NUMOWNKIDS +UHRSWORKT + EARNWEEK, 
-                             data = data_2019,
-                             family = gaussian,
-                             chains = 4,
-                             iter = 1000*2)
-```
-
-### Diagnostics
-
-```{r}
-mcmc_trace(travel_model1)
-mcmc_dens_overlay(travel_model1)
-```
-
-### Posterior Predictive Check
-
-```{r}
-set.seed(84735)
-pp_check(travel_model1, nreps = 50)
-```
 
 ## Model for personal care
 
