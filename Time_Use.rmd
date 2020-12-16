@@ -63,6 +63,42 @@ hist(data_2019$ACT_SOCIAL)
 ```
 The distribution of observations for time spent socializing and relaxing per week is right skewed with a mean of 239.2 minutes per week and an outlying maximum of 1235 minutes per week. 
 
+## ACT_PCARE: Minutes spent on personal care per week
+
+### Summary Stats
+
+```{r}
+summary(data_2019$ACT_PCARE)
+hist(data_2019$ACT_PCARE)
+```
+
+## HH_NUMOWNKIDS: Number of own children under 18 in the household
+
+### Summary Stats
+
+```{r}
+summary(data_2019$HH_NUMOWNKIDS)
+hist(data_2019$HH_NUMOWNKIDS)
+```
+
+## UHRSWORKT: Usual hours worked per week 
+
+### Summary Stats
+
+```{r}
+summary(data_2019$UHRSWORKT)
+hist(data_2019$UHRSWORKT)
+```
+
+## EARNWEEK: Usual weekly earnings (in dollars)
+
+### Summary Stats
+
+```{r}
+summary(data_2019$EARNWEEK)
+hist(data_2019$EARNWEEK)
+```
+
 
 
 # Building model for socializing/relaxing
@@ -75,13 +111,23 @@ social_model1 <- stan_glm(ACT_SOCIAL ~ UHRSWORKT + HH_NUMOWNKIDS + EARNWEEK,
                              chains = 4,
                              iter = 1000*2)
 ```
-Can add more to this model.
+
+### Model
+
+```{r}
+social_model1_summary <- as.data.frame(summary(social_model1))
+head(social_model1_summary, -2)
+```
+
+$\hat{social} = 632.16 -0.78(work\ hours) - 9.67(\#children) - 0.019(earnings)$
+
+All of the predictors have an estimated negative association with time socializing. As hours worked and weekly earnings increase, predicted social/relaxing time decreases on average by 1.447 and 0.006 minutes with 80% credible intervals [-1.73, -1.16] and [-0.011, -0.0013] respectively. For each additional child under 18 in the household, the predicted social/relaxing time decreases by 26.03 minutes on average with an 80% credible interval of [-29.16, -22.87]. Since the 80% credible intervals are all less than zero, there is evidence to suggest there is a negative association between the predictors. 
 
 # Assessing model for time spent socializing/relaxing
 
 ## How fair is the model?
 
-The data was collected by the Bureau of Labor Statistics using surveys conducted on Americans from years 2015 to 2019. The goal of the data collection was to understand how Americans spend their time. This analysis shows how likely Americans are to participate in acts of social activity and leisure based on other factors of their life.
+The data was collected by the Bureau of Labor Statistics using surveys conducted on Americans from years 2015 to 2019. The goal of the data collection was to understand how Americans spend their time. This analysis shows how likely Americans are to participate in acts of social activity and leisure based on other factors of their life. There are no obvious biases in this analysis.
 
 ## How wrong is the model?
 
@@ -182,16 +228,35 @@ pp_check(social_model2, nreps = 50)
 
 The diagnostics and posterior predictive check look the same as our first model. We concluded that the predictors were insignificant to predicting time spent socializing. 
 
-## Model for personal care
+## Building model for personal care
 
 ```{r, results="hide"}
 set.seed(84735)
-care_model1 <- stan_glm(ACT_PCARE ~ AGE + HH_NUMOWNKIDS +UHRSWORKT + EARNWEEK, 
+care_model1 <- stan_glm(ACT_PCARE ~ AGE + HH_NUMOWNKIDS + EARNWEEK, 
                              data = data_2019,
                              family = gaussian,
                              chains = 4,
                              iter = 1000*2)
 ```
+
+### Model
+
+```{r}
+care_model1_summary <- as.data.frame(summary(care_model1))
+head(care_model1_summary, -2)
+```
+
+$\hat{personal\ care} = 632.16 -0.78(age) - 9.67(\#children) - 0.019(earnings)$
+
+All of the predictors have an estimated negative association with time spent on personal care. As age and weekly earnings increase, predicted personal care time decreases on average by 0.78 and 0.019 minutes with 80% credible intervals [-0.96, -0.60] and [-0.022, -0.016] respectively. For each additional child under 18 in the household, the predicted personal care time decreases by 9.67 minutes on average with an 80% credible interval [-12.01, -7.36]. Since the 80% credible intervals are all less than zero, there is evidence to suggest there is a negative association between the predictors.
+
+# Assessing model for time spent socializing/relaxing
+
+## How fair is the model?
+
+Like our first model, the data was collected by the Bureau of Labor Statistics using surveys conducted on Americans from years 2015 to 2019. The goal of the data collection was to understand how Americans spend their time. This analysis shows how likely Americans are to participate in acts of personal care based on other factors of their life. There are no obvious biases in this analysis. 
+
+## How wrong is the model?
 
 ### Diagnostics
 
@@ -200,6 +265,33 @@ mcmc_trace(care_model1)
 mcmc_dens_overlay(care_model1)
 ```
 
+The trace plots appear stable and the densities of the chains are similar so the approximations of the posterior should also be stable. This provides evidence that our simulation is stable and our chains are sufficiently long. 
+
+### Linear Regression Assumptions
+
+**Linear Association**:
+
+```{r}
+data_2019 %>%
+  ggplot(aes(x = AGE, y= ACT_PCARE))+
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+data_2019 %>%
+  ggplot(aes(x = HH_NUMOWNKIDS, y= ACT_PCARE))+
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+data_2019 %>%
+  ggplot(aes(x = EARNWEEK, y= ACT_SOCIAL))+
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+There is a linear association between all of the predictors to the response variable of time spent participating in personal care activities. 
+
+**Homoskedacticity & Normality of Error Terms**:
+
+The has constant variance across all the predictors except for number of children under 18. For this variable, most of the observations had no children and only a few had up to 6 children. This skewed the distribution of the error terms for that variable. We continue with the model assuming overall normality and homoskedacticity. 
+
 ### Posterior Predictive Check
 
 ```{r}
@@ -207,6 +299,43 @@ set.seed(84735)
 pp_check(care_model1, nreps = 50)
 ```
 
+This model captures the general trend of the observed data but misses the average values at the top. Overall, this model seems effective compared to our first socializing model.
+
+## How accurate are the posterior predictive models?
+
+```{r}
+set.seed(84735)
+care_predictions <- posterior_predict(care_model1, newdata = data_2019)
+
+prediction_summary(y = data_2019$ACT_PCARE, yrep = care_predictions)
+```
+
+The median of the error terms is 72.78 minutes. The typical observation deviated 0.832 from the posterior median. 
+
+58.72% of the observed minutes spent on personal care activities are within the 50% predictive interval of our model and 94.72% of observed minutes are within the 95% predictive interval.
+
+### Cross Validation
+
+```{r}
+set.seed(84735)
+cv_care_model1<-prediction_summary_cv(data = data_2019, model = care_model1, k = 10)
+```
+
+```{r}
+rbind(cv_care_model1$cv)
+```
+
+The median of error terms for the cross validated model is 72.33 which is very close to the median of the original model. In addition, the typical observation deviated 0.825 from the posterior median which is also very close to the original model.
+
+58.3% of the observed minutes spent socializing/relaxing are within the 50% cross validated predictive interval of our model and 94.76% of observed minutes are within the 95% cross validated predictive interval.
+
+The cross validated model does not seem to differ significantly from the original.
+
+### Analysis
+
+Based on our assessment, our model for predicting minutes spent on personal care based on number of children under 18, age, and weekly earnings is effective. The simulation captures most of the observed data distribution.
+
+We also tested other predictors in the model that seemed to result in the same outcome as social_model1. The results were less than ideal.
 
 ## References
 
