@@ -99,6 +99,23 @@ summary(data_2019$EARNWEEK)
 hist(data_2019$EARNWEEK)
 ```
 
+## AGE: Age of survey respondent
+
+### Summary Stats
+
+```{r}
+summary(data_2019$AGE)
+hist(data_2019$AGE)
+```
+
+## SEX: Sex of survey respondent
+
+### Summary Stats
+
+```{r}
+summary(data_2019$SEX)
+hist(data_2019$SEX)
+```
 
 
 # Building model for socializing/relaxing
