@@ -1,5 +1,5 @@
 ---
-title: "How likely are you to have a social life?"
+title: "Bayesian Regression Modeling for Social Life and Personal Care"
 subtitle: "SDS 390 Final Project"
 author: "Madison Gruneiro, Truc Tran"
 date: "12/3/2020"
@@ -15,6 +15,10 @@ library(bayesplot)
 library(rstanarm)
 library(naniar)
 ```
+
+# Abstract
+
+We built two bayesian regression models predicting how much time an individual spends socializing/relaxing and for personal care based on various aspects of their home and work life. We used data from 2019 Ipums Time Use data which gathered data on how people spend their time through the use of a questionnaire compiled by the Bureau of Labor Statistics. We found that our first model predicting time spent socializing was not effective at picking up the shape of the observation distribution and the variables we were testing were not effective predictors. The model we built predicting time spent on personal care was effective. 
 
 # Introduction
 
@@ -161,7 +165,7 @@ The trace plots appear stable and the densities of the chains are similar so the
 
 **Linear Association**:
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 data_2019 %>%
   ggplot(aes(x = UHRSWORKT, y= ACT_SOCIAL))+
   geom_point() +
